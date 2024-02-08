@@ -1,0 +1,64 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Unlock_stlink_f1",
+            "type": "shell",
+            "command": "openocd -d0 -f openocd_scripts/stm32f1_stlink.cfg -f openocd_scripts/ocd_unlock.cfg",
+            "args": [],
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "Lock_stlink_f1",
+            "type": "shell",
+            "command": "openocd -d0 -f openocd_scripts/stm32f1_stlink.cfg -f openocd_scripts/ocd_lock.cfg",
+            "args": [],
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "stlink_f1_fire",
+            "type": "shell",
+            "command": "openocd -f openocd_scripts/stm32f1_stlink.cfg -c \"program ${command:cmake.launchTargetPath}  verify reset exit\"",
+            "args": [],
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "type": "cmake",
+            "label": "CMake: clean rebuild",
+            "command": "cleanRebuild",
+            "targets": [
+                "all"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "detail": "C    template clean rebuild task"
+        },
+        {
+              "type": "shell",
+              "label": "flash-openocd",
+              "command": "openocd  -f openocd_scripts/stm32f1_stlink.cfg -c \"program build/METEO_SENSE.hex verify reset exit\"",
+              "dependsOn": "CMake: build",
+              "problemMatcher": [],
+              "group": {
+                "kind": "build",
+                "isDefault": true
+              },
+              "detail": "Builds project, connects to the openOCD server and flashes new firmware."
+            }
+
+    ]
+}

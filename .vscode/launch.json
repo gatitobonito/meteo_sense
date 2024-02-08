@@ -1,0 +1,49 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "stlink-f1",
+            "request": "launch",
+            "type": "cortex-debug",
+            "cwd": "${workspaceRoot}",
+            "servertype": "openocd",
+            "executable": "${command:cmake.launchTargetPath}",
+            "svdFile": "STM32F1.svd",
+            "configFiles": [
+                "/openocd_scripts/stm32f1_stlink.cfg",
+            ]
+        },
+        {
+            "name": "jlink",
+            "request": "launch",
+            "type": "cortex-debug",
+            "cwd": "${workspaceRoot}",
+            "servertype": "openocd",
+            "executable": "${command:cmake.launchTargetPath}",
+            "svdFile": "svd_file.svd",
+            "configFiles": [
+                "/usr/share/openocd/scripts/interface/jlink.cfg",
+                "/usr/share/openocd/scripts/target/stm32f1x.cfg" //stm32f1x
+            ]
+        },
+        {
+            "name": "(gdb) Launch",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${command:cmake.launchTargetPath}",
+            "args": [],
+            "stopAtEntry": false, "cwd": "${fileDirname}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+          },
+        
+    ]
+}
