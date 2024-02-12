@@ -22,6 +22,7 @@
 
 #include "main.h"
 #include "task.h"
+#include "pwm_task.h"
 
 #define ADC_CHANNELS_NUM                                         1
 
@@ -63,16 +64,17 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_ADC1_Init();
-  __HAL_RCC_ADC1_CLK_ENABLE();
-
 
   HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adcData, ADC_CHANNELS_NUM);
 
-  // MX_SPI1_Init();
-  // MX_SPI2_Init();
+  MX_SPI1_Init();
+  MX_SPI2_Init();
+  HAL_ADC_Start_IT(&hadc1);
+  //gps_uart
+  MX_USART2_UART_Init();
 
-  // //gps_uart
-  // MX_USART2_UART_Init();
+  sense_si7007_init();
+
   __enable_irq();
   while (1)
   {
