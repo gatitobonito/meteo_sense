@@ -6,6 +6,7 @@
         "main.h": "c",
         "stdint.h": "c",
         "stm32f1xx_hal_rcc.h": "c",
-        "pwm_task.h": "c"
+        "pwm_task.h": "c",
+        "lora_sx1276.h": "c"
     }
 }

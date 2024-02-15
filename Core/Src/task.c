@@ -1,6 +1,8 @@
 #include "task.h"
 #include "stdint.h"
+#include "lora_sx1276.h"
 
+static lora_sx1276 lora;
 float humidity;
 
 static void led_update_task(void)
@@ -43,4 +45,35 @@ void set_sense_si7007(uint32_t period, uint32_t pulse)
     float temp;
 	temp = (float)pulse / (float)period;
 	humidity = HUMIDITY_B + HUMIDITY_K * temp;
+}
+
+uint8_t reciever_init(SPI_HandleTypeDef *hspi)
+{
+    SPI_HandleTypeDef hspi1;
+    
+    uint8_t res = lora_init(&lora, &hspi, GPIOA, GPIO_PIN_4, LORA_CUSTOM_FREQUENCY_US);
+
+    return res;
+}
+
+uint8_t lora_send(uint8_t *data, uint8_t length)
+{
+    uint8_t res = lora_send_packet(&lora, data, length);
+
+    return res;
+}
+
+uint8_t lora_recieve(void)
+{
+    // Receive buffer
+    uint8_t buffer[32];
+    uint8_t res;
+    // Put LoRa modem into continuous receive mode
+    lora_mode_receive_continuous(&lora);
+    // Wait for packet up to 10sec
+
+    uint8_t len = lora_receive_packet_blocking(&lora, buffer, sizeof(buffer), 10000, &res);
+
+
+    return res;
 }

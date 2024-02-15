@@ -72,7 +72,7 @@ int main(void)
   HAL_ADC_Start_IT(&hadc1);
   //gps_uart
   MX_USART2_UART_Init();
-
+  reciever_init(&hspi1);
   sense_si7007_init();
 
   __enable_irq();
