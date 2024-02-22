@@ -2,8 +2,14 @@
 
 #define HUMIDITY_K										((float)125)
 #define HUMIDITY_B										((float)-6)
+#define KOEF_CELSIUS									((float)0.25)
 
-
+typedef struct 
+{
+    float humidity;
+    float pressure;
+	float temperature;
+} senses_t;
 
 void init(void);
 void main_task(void);

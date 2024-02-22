@@ -4,6 +4,7 @@
 
 static lora_sx1276 lora;
 float humidity;
+static senses_t senses = {0,0,0};
 
 static void led_update_task(void)
 {
@@ -12,15 +13,25 @@ static void led_update_task(void)
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8|GPIO_PIN_9, GPIO_PIN_RESET);
     HAL_Delay(100);
 }
+static void si7007_task()
+{
 
+}
 
+static uint16_t readValue (void)
+{
+	uint16_t temp;
+    //  wip
+	return temp;
+}
 
 void main_task(void)
 {
 
     led_update_task();
-
-
+    // lps331_task();
+    ad7814_task();
+    si7007_task();
 }
 
 
@@ -44,7 +55,7 @@ void set_sense_si7007(uint32_t period, uint32_t pulse)
 {
     float temp;
 	temp = (float)pulse / (float)period;
-	humidity = HUMIDITY_B + HUMIDITY_K * temp;
+	senses.humidity = HUMIDITY_B + HUMIDITY_K * temp;
 }
 
 uint8_t reciever_init(SPI_HandleTypeDef *hspi)
@@ -58,8 +69,11 @@ uint8_t reciever_init(SPI_HandleTypeDef *hspi)
 
 uint8_t lora_send(uint8_t *data, uint8_t length)
 {
+    //amp on for trasnmitt
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, GPIO_PIN_SET);
+    HAL_Delay(1);
     uint8_t res = lora_send_packet(&lora, data, length);
-
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, GPIO_PIN_RESET);
     return res;
 }
 
@@ -77,3 +91,22 @@ uint8_t lora_recieve(void)
 
     return res;
 }
+
+void ad7814_task(void)
+{
+	int16_t reg;
+	
+	reg = readValue ();
+	//reset dump data
+	reg >>= 5;
+	
+	// 10 bit sense with 9 bit is sign
+	if (reg & 0x0200) 
+    {
+        reg |= 0xfc00;
+    }
+	// result in Celsius
+	senses.temperature = (float)reg * KOEF_CELSIUS;	
+}
+
+
