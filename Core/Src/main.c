@@ -60,22 +60,24 @@ int main(void)
   HAL_Init();
 
   SystemClock_Config();
-
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_ADC1_Init();
 
-  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adcData, ADC_CHANNELS_NUM);
+  // HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adcData, ADC_CHANNELS_NUM);
 
   MX_SPI1_Init();
   MX_SPI2_Init();
-  HAL_ADC_Start_IT(&hadc1);
-  //gps_uart
-  MX_USART2_UART_Init();
-  reciever_init(&hspi1);
-  sense_si7007_init();
+  HAL_Delay(500);
+  // HAL_ADC_Start_IT(&hadc1);
+  // MX_USART2_UART_Init();
+  // reciever_init(&hspi1);
 
-  __enable_irq();
+  //humidity sensor
+  sense_si7007_init();
+  HAL_Delay(500);
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
+
   while (1)
   {
     main_task();
@@ -131,7 +133,7 @@ void SystemClock_Config(void)
   */
 static void MX_ADC1_Init(void)
 {
-
+  //PB0 pin - battery boltage
   ADC_ChannelConfTypeDef sConfig = {0};
 
   /** Common config
@@ -157,9 +159,6 @@ static void MX_ADC1_Init(void)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN ADC1_Init 2 */
-
-  /* USER CODE END ADC1_Init 2 */
 
 }
 
@@ -204,6 +203,8 @@ static void MX_SPI1_Init(void)
   {
     Error_Handler();
   }
+  //start spi1
+  SPI1->CR1 |= SPI_CR1_SPE; 
 }
 
 /**
@@ -229,6 +230,8 @@ static void MX_SPI2_Init(void)
   {
     Error_Handler();
   }
+  //start spi2
+  SPI2->CR1 |= SPI_CR1_SPE; 
 }
 
 /**
@@ -288,28 +291,47 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2, GPIO_PIN_SET);
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8|GPIO_PIN_9, GPIO_PIN_RESET);
-  /*Configure GPIO pin : PA1 */
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1|GPIO_PIN_2, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0 | GPIO_PIN_8|GPIO_PIN_9, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_15, GPIO_PIN_SET);
+  /*Configure GPIO pin : PA1 PWM AD7814*/
   GPIO_InitStruct.Pin = GPIO_PIN_1;
   GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  // unused
+  GPIO_InitStruct.Pin = GPIO_PIN_0;
+  GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PB1 PB2 PB8 PB9 */
-  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_8|GPIO_PIN_9;
+  /**/
+  GPIO_InitStruct.Pin = GPIO_PIN_0 |GPIO_PIN_2|GPIO_PIN_8|GPIO_PIN_9;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, GPIO_PIN_RESET);
-
-  GPIO_InitStruct.Pin = GPIO_PIN_10;
+  //SPI2 CS pin
+  GPIO_InitStruct.Pin = GPIO_PIN_4;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  
+  GPIO_InitStruct.Pin = GPIO_PIN_10;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+    /*Configure GPIO pins : PA8 PA11 PA12.*/
+    /* PA15 - reset tranceiver, must be hi-z */
+  GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_11|GPIO_PIN_12|GPIO_PIN_15;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_15, GPIO_PIN_SET);
 }
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)

@@ -1,11 +1,12 @@
 #include "task.h"
 #include "stdint.h"
 #include "lora_sx1276.h"
-
+extern SPI_HandleTypeDef hspi2;
 static lora_sx1276 lora;
 float humidity;
 static senses_t senses = {0,0,0};
-
+extern uint32_t period; 
+extern uint32_t pulse;
 static void led_update_task(void)
 {
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8|GPIO_PIN_9, GPIO_PIN_SET);
@@ -18,10 +19,24 @@ static void si7007_task()
 
 }
 
+static uint8_t spiXmit (SPI_TypeDef *SPIx, uint8_t byte)
+{
+	SPIx->DR = byte;
+	while (!(SPIx->SR & SPI_SR_RXNE));
+	return SPIx->DR;
+}
+
 static uint16_t readValue (void)
 {
-	uint16_t temp;
-    //  wip
+	uint16_t temp=0;
+	uint16_t temp2=0;
+    uint8_t data=0x00;
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
+	HAL_SPI_TransmitReceive(&hspi2, &data, &temp, 1, 100);
+	temp = temp << 8;
+	HAL_SPI_TransmitReceive(&hspi2, &data, &temp2, 1, 100);
+	temp |= temp2;
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
 	return temp;
 }
 
@@ -31,7 +46,8 @@ void main_task(void)
     led_update_task();
     // lps331_task();
     ad7814_task();
-    si7007_task();
+    read_sense_si7007(period, pulse);
+    HAL_Delay(100);
 }
 
 
@@ -51,7 +67,7 @@ void power_off(void)
 }
 
 
-void set_sense_si7007(uint32_t period, uint32_t pulse)
+void read_sense_si7007(uint32_t period, uint32_t pulse)
 {
     float temp;
 	temp = (float)pulse / (float)period;
